@@ -34,26 +34,6 @@ import Html.Lazy exposing (lazy)
 import Mouse
 
 
-{- TODO
-   - make sure that lazy is working as expected! (not sure how to test this though...)
-   - add remaining subscriptions
-   - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
-   - think about name Interaction
-   - think about name of library
-   - using word msg vs event, model vs state, view vs ??? ?
-   - documentation
-   - general program to support Cmds and/or custom subscriptions?
-   - debug options:
-       - various debug options: https://github.com/jcollard/elm-playground/blob/master/src/Playground.elm#L102
-       - display grid + mouse position: https://github.com/MacCASOutreach/graphicsvg/blob/1.1.1/GraphicSVG.elm#L1042 and http://www.janis-voigtlaender.eu/Elm-Kurs/examples/Kreise.html
-       - time travel: play + pause + scrub button! to allow for vizualization and debugging: http://package.elm-lang.org/packages/jinjor/elm-time-travel/latest + http://worrydream.com/LearnableProgramming/
--}
-{- NOTE
-   - when we get to Interaction apps, we learn that Time is just a specific Event/Msg
-   - use Time alias as a good opportunity to talk about alias
--}
-
-
 {-| -}
 type alias Time =
     Float
