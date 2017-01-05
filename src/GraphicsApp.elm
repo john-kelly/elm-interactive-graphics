@@ -9,7 +9,7 @@ module GraphicsApp
         , simulate
         , Interaction
         , interact
-        , Event(..)
+        , Msg(..)
         )
 
 {-| Incremental introduction to interactive graphics programs.
@@ -23,8 +23,8 @@ module GraphicsApp
 # Draw with Time and Model
 @docs Simulation, simulate
 
-# Draw with Model and Events
-@docs Interaction, interact, Event
+# Draw with Model and Messages
+@docs Interaction, interact, Msg
 -}
 
 import AnimationFrame
@@ -47,7 +47,7 @@ import Mouse
        - time travel: play + pause + scrub button! to allow for vizualization and debugging: http://package.elm-lang.org/packages/jinjor/elm-time-travel/latest + http://worrydream.com/LearnableProgramming/
 -}
 {- NOTE
-   - when we get to Interaction apps, we learn that Time is just an Event
+   - when we get to Interaction apps, we learn that Time is just a specific Event/Msg
    - use Time alias as a good opportunity to talk about alias
 -}
 
@@ -58,12 +58,12 @@ type alias Time =
 
 
 {-| -}
-type Event
+type Msg
     = TimeTick Time
     | MouseClick
 
 
-type TimeEvent
+type TimeMsg
     = Diff Time
 
 
@@ -74,17 +74,17 @@ type alias Drawing =
 
 {-| -}
 type alias Animation =
-    Program Never Time TimeEvent
+    Program Never Time TimeMsg
 
 
 {-| -}
 type alias Simulation model =
-    Program Never ( Time, model ) TimeEvent
+    Program Never ( Time, model ) TimeMsg
 
 
 {-| -}
 type alias Interaction model =
-    Program Never ( Time, model ) Event
+    Program Never ( Time, model ) Msg
 
 
 {-| -}
@@ -126,9 +126,9 @@ simulate init view update =
 
 simulationUpdate :
     (Time -> model -> model)
-    -> TimeEvent
+    -> TimeMsg
     -> ( Time, model )
-    -> ( ( Time, model ), Cmd TimeEvent )
+    -> ( ( Time, model ), Cmd TimeMsg )
 simulationUpdate update (Diff diff) ( time, model ) =
     let
         updatedTime =
@@ -151,7 +151,7 @@ simulationUpdate update (Diff diff) ( time, model ) =
 interact :
     model
     -> (model -> Element.Element)
-    -> (Event -> model -> model)
+    -> (Msg -> model -> model)
     -> Interaction model
 interact init view update =
     Html.program
