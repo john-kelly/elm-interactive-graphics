@@ -30,11 +30,12 @@ module GraphicsApp
 import AnimationFrame
 import Element exposing (toHtml)
 import Html
+import Html.Lazy exposing (lazy)
 import Mouse
 
 
 {- TODO
-   - lazy: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L227
+   - make sure that lazy is working as expected! (not sure how to test this though...)
    - add remaining subscriptions
    - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
    - think about name Interaction
@@ -119,7 +120,7 @@ simulate :
 simulate init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \( _, model ) -> toHtml (view model)
+        , view = \( _, model ) -> lazy (view >> toHtml) model
         , update = simulationUpdate update
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
@@ -139,7 +140,7 @@ simulationUpdate update (Diff diff) ( time, model ) =
             update updatedTime model
 
         updatedModel =
-            -- for lazy?
+            -- necessary for lazy
             if newModel == model then
                 model
             else
@@ -157,7 +158,7 @@ interact :
 interact init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \( _, model ) -> toHtml (view model)
+        , view = \( _, model ) -> lazy (view >> toHtml) model
         , update = interactionUpdate update
         , subscriptions = interactionSubscriptions
         }
@@ -179,7 +180,7 @@ interactionUpdate update msg ( time, model ) =
                     update (TimeTick updatedTime) model
 
                 updatedModel =
-                    -- for lazy?
+                    -- necessary for lazy
                     if newModel == model then
                         model
                     else
@@ -193,7 +194,7 @@ interactionUpdate update msg ( time, model ) =
                     update msg model
 
                 updatedModel =
-                    -- for lazy?
+                    -- necessary for lazy
                     if newModel == model then
                         model
                     else
