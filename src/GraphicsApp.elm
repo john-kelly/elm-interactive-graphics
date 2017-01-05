@@ -38,6 +38,7 @@ import Mouse
    - add remaining subscriptions
    - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
    - think about name Interaction
+   - think about name of library
    - using word msg vs event, model vs state, view vs ??? ?
    - documentation
    - general program to support Cmds and/or custom subscriptions?
@@ -118,7 +119,7 @@ simulate :
 simulate init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \model -> toHtml (view (Tuple.second model))
+        , view = \( _, model ) -> toHtml (view model)
         , update = simulationUpdate update
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
@@ -138,7 +139,7 @@ simulationUpdate update (Diff diff) ( time, model ) =
             update updatedTime model
 
         updatedModel =
-            -- for lazy?: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L329
+            -- for lazy?
             if newModel == model then
                 model
             else
@@ -156,19 +157,54 @@ interact :
 interact init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \model -> toHtml (view (Tuple.second model))
-        , update =
-            \msg ( time, model ) ->
-                case msg of
-                    TimeTick diff ->
-                        ( time + diff, update (TimeTick (time + diff)) model ) ! []
-
-                    _ ->
-                        ( time, update msg model ) ! []
-        , subscriptions =
-            \_ ->
-                Sub.batch
-                    [ AnimationFrame.diffs TimeTick
-                    , Mouse.clicks (\_ -> MouseClick)
-                    ]
+        , view = \( _, model ) -> toHtml (view model)
+        , update = interactionUpdate update
+        , subscriptions = interactionSubscriptions
         }
+
+
+interactionUpdate :
+    (Msg -> model -> model)
+    -> Msg
+    -> ( Time, model )
+    -> ( ( Time, model ), Cmd Msg )
+interactionUpdate update msg ( time, model ) =
+    case msg of
+        TimeTick diff ->
+            let
+                updatedTime =
+                    time + diff
+
+                newModel =
+                    update (TimeTick updatedTime) model
+
+                updatedModel =
+                    -- for lazy?
+                    if newModel == model then
+                        model
+                    else
+                        newModel
+            in
+                ( updatedTime, updatedModel ) ! []
+
+        _ ->
+            let
+                newModel =
+                    update msg model
+
+                updatedModel =
+                    -- for lazy?
+                    if newModel == model then
+                        model
+                    else
+                        newModel
+            in
+                ( time, updatedModel ) ! []
+
+
+interactionSubscriptions : ( Time, model ) -> Sub Msg
+interactionSubscriptions _ =
+    Sub.batch
+        [ AnimationFrame.diffs TimeTick
+        , Mouse.clicks (\_ -> MouseClick)
+        ]
