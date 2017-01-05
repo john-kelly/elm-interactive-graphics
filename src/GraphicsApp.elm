@@ -20,10 +20,10 @@ module GraphicsApp
 # Draw with Time
 @docs Animation, animate, Time
 
-# Draw with Time and State
+# Draw with Time and Model
 @docs Simulation, simulate
 
-# Draw with State and Events
+# Draw with Model and Events
 @docs Interaction, interact, Event
 -}
 
@@ -78,13 +78,13 @@ type alias Animation =
 
 
 {-| -}
-type alias Simulation state =
-    Program Never ( Time, state ) TimeEvent
+type alias Simulation model =
+    Program Never ( Time, model ) TimeEvent
 
 
 {-| -}
-type alias Interaction state =
-    Program Never ( Time, state ) Event
+type alias Interaction model =
+    Program Never ( Time, model ) Event
 
 
 {-| -}
@@ -111,10 +111,10 @@ animate view =
 
 {-| -}
 simulate :
-    state
-    -> (state -> Element.Element)
-    -> (Time -> state -> state)
-    -> Simulation state
+    model
+    -> (model -> Element.Element)
+    -> (Time -> model -> model)
+    -> Simulation model
 simulate init view update =
     Html.program
         { init = ( ( 0, init ), Cmd.none )
@@ -149,10 +149,10 @@ simulationUpdate update (Diff diff) ( time, model ) =
 
 {-| -}
 interact :
-    state
-    -> (state -> Element.Element)
-    -> (Event -> state -> state)
-    -> Interaction state
+    model
+    -> (model -> Element.Element)
+    -> (Event -> model -> model)
+    -> Interaction model
 interact init view update =
     Html.program
         { init = ( ( 0, init ), Cmd.none )
