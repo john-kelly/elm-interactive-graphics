@@ -83,7 +83,7 @@ view4 ( x, y, dx, dy, radius ) =
 
 update4 msg ( x, y, dx, dy, radius ) =
     case msg of
-        Tick _ ->
+        TimeTick _ ->
             if x + radius > 200 || x - radius < -200 then
                 ( x - dx, y + dy, -dx, dy, radius )
             else if y + radius > 200 || y - radius < -200 then

@@ -4,6 +4,7 @@ module GraphicsApp
         , draw
         , Animation
         , animate
+        , Time
         , Simulation
         , simulate
         , Interaction
@@ -17,7 +18,7 @@ module GraphicsApp
 @docs Drawing, draw
 
 # Draw with Time
-@docs Animation, animate
+@docs Animation, animate, Time
 
 # Draw with Time and State
 @docs Simulation, simulate
@@ -30,15 +31,14 @@ import AnimationFrame
 import Element exposing (toHtml)
 import Html
 import Mouse
-import Time exposing (Time)
 
 
 {- TODO
    - lazy: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L227
    - add remaining subscriptions
    - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
-   - think about names for Tick, Event, Interaction
-   - using word msg vs event, model vs state?
+   - think about name Interaction
+   - using word msg vs event, model vs state, view vs ??? ?
    - documentation
    - general program to support Cmds and/or custom subscriptions?
    - debug options:
@@ -47,11 +47,23 @@ import Time exposing (Time)
        - time travel: play + pause + scrub button! to allow for vizualization and debugging: http://package.elm-lang.org/packages/jinjor/elm-time-travel/latest + http://worrydream.com/LearnableProgramming/
 -}
 {- NOTE
-   - When we get to Interaction apps, we learn that Time is just an Event
+   - when we get to Interaction apps, we learn that Time is just an Event
+   - use Time alias as a good opportunity to talk about alias
 -}
 
 
-type Tick
+{-| -}
+type alias Time =
+    Float
+
+
+{-| -}
+type Event
+    = TimeTick Time
+    | MouseClick
+
+
+type TimeEvent
     = Diff Time
 
 
@@ -62,23 +74,17 @@ type alias Drawing =
 
 {-| -}
 type alias Animation =
-    Program Never Time Tick
+    Program Never Time TimeEvent
 
 
 {-| -}
 type alias Simulation state =
-    Program Never ( Time, state ) Tick
+    Program Never ( Time, state ) TimeEvent
 
 
 {-| -}
 type alias Interaction state =
     Program Never ( Time, state ) Event
-
-
-{-| -}
-type Event
-    = Tick Time
-    | MouseClick
 
 
 {-| -}
@@ -93,7 +99,7 @@ draw view =
 
 
 {-| -}
-animate : (Float -> Element.Element) -> Animation
+animate : (Time -> Element.Element) -> Animation
 animate view =
     Html.program
         { init = ( 0, Cmd.none )
@@ -107,17 +113,38 @@ animate view =
 simulate :
     state
     -> (state -> Element.Element)
-    -> (Float -> state -> state)
+    -> (Time -> state -> state)
     -> Simulation state
 simulate init view update =
     Html.program
         { init = ( ( 0, init ), Cmd.none )
         , view = \model -> toHtml (view (Tuple.second model))
-        , update =
-            \(Diff diff) ( time, model ) ->
-                ( time + diff, update (time + diff) model ) ! []
+        , update = simulationUpdate update
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
+
+
+simulationUpdate :
+    (Time -> model -> model)
+    -> TimeEvent
+    -> ( Time, model )
+    -> ( ( Time, model ), Cmd TimeEvent )
+simulationUpdate update (Diff diff) ( time, model ) =
+    let
+        updatedTime =
+            time + diff
+
+        newModel =
+            update updatedTime model
+
+        updatedModel =
+            -- for lazy?: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L329
+            if newModel == model then
+                model
+            else
+                newModel
+    in
+        ( updatedTime, updatedModel ) ! []
 
 
 {-| -}
@@ -133,15 +160,15 @@ interact init view update =
         , update =
             \msg ( time, model ) ->
                 case msg of
-                    Tick diff ->
-                        ( time + diff, update (Tick (time + diff)) model ) ! []
+                    TimeTick diff ->
+                        ( time + diff, update (TimeTick (time + diff)) model ) ! []
 
                     _ ->
                         ( time, update msg model ) ! []
         , subscriptions =
             \_ ->
                 Sub.batch
-                    [ AnimationFrame.diffs Tick
+                    [ AnimationFrame.diffs TimeTick
                     , Mouse.clicks (\_ -> MouseClick)
                     ]
         }
