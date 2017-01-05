@@ -38,7 +38,7 @@ import Time exposing (Time)
    - add remaining subscriptions
    - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
    - think about names for Tick, Event, Interaction
-   - using word model vs state?
+   - using word msg vs event, model vs state?
    - documentation
    - general program to support Cmds and/or custom subscriptions?
    - debug options:
