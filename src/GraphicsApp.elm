@@ -102,7 +102,7 @@ draw view =
 animate : (Time -> Element.Element) -> Animation
 animate view =
     Html.program
-        { init = ( 0, Cmd.none )
+        { init = 0 ! []
         , view = \time -> toHtml (view time)
         , update = \(Diff diff) time -> (time + diff) ! []
         , subscriptions = \_ -> AnimationFrame.diffs Diff
@@ -117,7 +117,7 @@ simulate :
     -> Simulation model
 simulate init view update =
     Html.program
-        { init = ( ( 0, init ), Cmd.none )
+        { init = ( 0, init ) ! []
         , view = \model -> toHtml (view (Tuple.second model))
         , update = simulationUpdate update
         , subscriptions = \_ -> AnimationFrame.diffs Diff
@@ -155,7 +155,7 @@ interact :
     -> Interaction model
 interact init view update =
     Html.program
-        { init = ( ( 0, init ), Cmd.none )
+        { init = ( 0, init ) ! []
         , view = \model -> toHtml (view (Tuple.second model))
         , update =
             \msg ( time, model ) ->
