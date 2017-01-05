@@ -1,48 +1,78 @@
 module GraphicsApp
     exposing
-        ( draw
+        ( Drawing
+        , draw
+        , Animation
         , animate
+        , Simulation
         , simulate
+        , Interaction
         , interact
-        , ClockTick
         , Event(..)
         )
 
 {-| Incremental introduction to interactive graphics programs.
 
-# Apps
-@docs draw, animate, simulate, interact
+# Draw
+@docs Drawing, draw
 
-# Messages
-@docs ClockTick, Event
+# Draw with Time
+@docs Animation, animate
+
+# Draw with Time and State
+@docs Simulation, simulate
+
+# Draw with State and Events
+@docs Interaction, interact, Event
 -}
 
+import AnimationFrame
 import Element exposing (toHtml)
 import Html
-import AnimationFrame
-import Time exposing (Time)
 import Mouse
+import Time exposing (Time)
 
 
 {- TODO
+   - lazy: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L227
+   - add remaining subscriptions
+   - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
+   - think about names for Tick, Event, Interaction
+   - using word model vs state?
+   - documentation
+   - general program to support Cmds and/or custom subscriptions?
    - debug options:
        - various debug options: https://github.com/jcollard/elm-playground/blob/master/src/Playground.elm#L102
        - display grid + mouse position: https://github.com/MacCASOutreach/graphicsvg/blob/1.1.1/GraphicSVG.elm#L1042 and http://www.janis-voigtlaender.eu/Elm-Kurs/examples/Kreise.html
        - time travel: play + pause + scrub button! to allow for vizualization and debugging: http://package.elm-lang.org/packages/jinjor/elm-time-travel/latest + http://worrydream.com/LearnableProgramming/
-   - lazy: https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L227
-   - Computer/World: https://github.com/jcollard/elm-playground/blob/master/src/Playground/Input.elm#L25 and https://github.com/evancz/elm-playground/blob/master/src/Playground.elm#L44
-   - remaning subscriptions
-   - general program? and program with flags?
-   - documentation
-   - name for messages? ClockTick, Event? what are better names?
-   - how to fix type signature of the Program? hidden float is there... Does it make sense to
-       to make that opaque in some way?
+-}
+{- NOTE
+   - When we get to Interaction apps, we learn that Time is just an Event
 -}
 
 
-{-| -}
-type ClockTick
+type Tick
     = Diff Time
+
+
+{-| -}
+type alias Drawing =
+    Program Never () Never
+
+
+{-| -}
+type alias Animation =
+    Program Never Time Tick
+
+
+{-| -}
+type alias Simulation state =
+    Program Never ( Time, state ) Tick
+
+
+{-| -}
+type alias Interaction state =
+    Program Never ( Time, state ) Event
 
 
 {-| -}
@@ -52,7 +82,7 @@ type Event
 
 
 {-| -}
-draw : Element.Element -> Program Never () Never
+draw : Element.Element -> Drawing
 draw view =
     Html.program
         { init = () ! []
@@ -63,7 +93,7 @@ draw view =
 
 
 {-| -}
-animate : (Float -> Element.Element) -> Program Never Float ClockTick
+animate : (Float -> Element.Element) -> Animation
 animate view =
     Html.program
         { init = ( 0, Cmd.none )
@@ -75,10 +105,10 @@ animate view =
 
 {-| -}
 simulate :
-    model
-    -> (model -> Element.Element)
-    -> (Float -> model -> model)
-    -> Program Never ( Float, model ) ClockTick
+    state
+    -> (state -> Element.Element)
+    -> (Float -> state -> state)
+    -> Simulation state
 simulate init view update =
     Html.program
         { init = ( ( 0, init ), Cmd.none )
@@ -92,10 +122,10 @@ simulate init view update =
 
 {-| -}
 interact :
-    model
-    -> (model -> Element.Element)
-    -> (Event -> model -> model)
-    -> Program Never ( Float, model ) Event
+    state
+    -> (state -> Element.Element)
+    -> (Event -> state -> state)
+    -> Interaction state
 interact init view update =
     Html.program
         { init = ( ( 0, init ), Cmd.none )

@@ -12,6 +12,7 @@ view1 =
     collage 400 400 [ filled red (circle 50) ]
 
 
+main : Drawing
 main =
     draw view1
 
@@ -37,6 +38,7 @@ view2 time =
         collage 400 400 [ move ( x, y ) (filled red (circle radius)) ]
 
 
+main2 : Animation
 main2 =
     animate view2
 
@@ -62,6 +64,7 @@ update3 time ( x, y, dx, dy, radius ) =
         ( x + dx, y + dy, dx, dy, radius )
 
 
+main3 : Simulation ( Float, Float, Float, Float, Float )
 main3 =
     simulate model3 view3 update3
 
@@ -92,5 +95,6 @@ update4 msg ( x, y, dx, dy, radius ) =
             ( x - dx, y + dy, -dx, dy, radius )
 
 
+main4 : Interaction ( Float, Float, Float, Float, Float )
 main4 =
     interact model4 view4 update4
