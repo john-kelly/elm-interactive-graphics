@@ -13,7 +13,7 @@ view ( x, y, dx, dy, radius ) =
     collage 400 400 [ move ( x, y ) (filled red (circle radius)) ]
 
 
-update msg ( x, y, dx, dy, radius ) =
+update msg (( x, y, dx, dy, radius ) as model) =
     case msg of
         TimeTick _ ->
             if x + radius > 200 || x - radius < -200 then
@@ -24,7 +24,10 @@ update msg ( x, y, dx, dy, radius ) =
                 ( x + dx, y + dy, dx, dy, radius )
 
         MouseClick ->
-            ( x - dx, y + dy, -dx, dy, radius )
+            ( x, y, -dx, dy, radius )
+
+        _ ->
+            model
 
 
 main : Interaction ( Float, Float, Float, Float, Float )

@@ -4,7 +4,6 @@ module GraphicsApp
         , draw
         , Animation
         , animate
-        , Time
         , Simulation
         , simulate
         , Interaction
@@ -18,7 +17,7 @@ module GraphicsApp
 @docs Drawing, draw
 
 # Draw with Time
-@docs Animation, animate, Time
+@docs Animation, animate
 
 # Draw with Time and Model
 @docs Simulation, simulate
@@ -28,21 +27,26 @@ module GraphicsApp
 -}
 
 import AnimationFrame
-import Element exposing (toHtml)
+import Element
 import Html
 import Html.Lazy exposing (lazy)
-import Mouse
-
-
-{-| -}
-type alias Time =
-    Float
+import Keyboard exposing (KeyCode)
+import Mouse exposing (Position)
+import Time exposing (Time)
+import Window exposing (Size)
 
 
 {-| -}
 type Msg
     = TimeTick Time
     | MouseClick
+    | MouseDown
+    | MouseUp
+    | MouseMove Position
+    | KeyDown KeyCode
+    | KeyUp KeyCode
+    | KeyPress KeyCode
+    | WindowResize Size
 
 
 type TimeMsg
@@ -74,7 +78,7 @@ draw : Element.Element -> Drawing
 draw view =
     Html.program
         { init = () ! []
-        , view = \_ -> toHtml view
+        , view = \_ -> Element.toHtml view
         , update = \_ model -> model ! []
         , subscriptions = \_ -> Sub.none
         }
@@ -85,7 +89,7 @@ animate : (Time -> Element.Element) -> Animation
 animate view =
     Html.program
         { init = 0 ! []
-        , view = \time -> toHtml (view time)
+        , view = \time -> Element.toHtml (view time)
         , update = \(Diff diff) time -> (time + diff) ! []
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
@@ -101,7 +105,7 @@ simulate init view update =
     let
         -- necessary for lazy?
         viewToHtml =
-            view >> toHtml
+            view >> Element.toHtml
     in
         Html.program
             { init = ( 0, init ) ! []
@@ -144,7 +148,7 @@ interact init view update =
     let
         -- necessary for lazy?
         viewToHtml =
-            view >> toHtml
+            view >> Element.toHtml
     in
         Html.program
             { init = ( 0, init ) ! []
@@ -196,6 +200,13 @@ interactionUpdate update msg ( time, model ) =
 interactionSubscriptions : ( Time, model ) -> Sub Msg
 interactionSubscriptions _ =
     Sub.batch
-        [ AnimationFrame.diffs TimeTick
+        [ Window.resizes WindowResize
         , Mouse.clicks (\_ -> MouseClick)
+        , Mouse.downs (\_ -> MouseDown)
+        , Mouse.ups (\_ -> MouseUp)
+        , Mouse.moves MouseMove
+        , AnimationFrame.diffs TimeTick
+        , Keyboard.presses KeyPress
+        , Keyboard.downs KeyDown
+        , Keyboard.ups KeyUp
         ]
