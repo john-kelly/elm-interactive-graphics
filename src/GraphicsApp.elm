@@ -29,7 +29,7 @@ module GraphicsApp
 import AnimationFrame
 import Element
 import Html
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (lazy2)
 import Keyboard exposing (KeyCode)
 import Mouse exposing (Position)
 import Time exposing (Time)
@@ -76,11 +76,10 @@ type alias Interaction model =
 {-| -}
 draw : Element.Element -> Drawing
 draw view =
-    Html.program
-        { init = () ! []
+    Html.beginnerProgram
+        { model = ()
         , view = \_ -> Element.toHtml view
-        , update = \_ model -> model ! []
-        , subscriptions = \_ -> Sub.none
+        , update = \_ _ -> ()
         }
 
 
@@ -95,6 +94,22 @@ animate view =
         }
 
 
+{-| Necessary for lazy?
+
+We need to define at the top level so that the reference of the lazy fn is the
+same across calls
+
+From http://elm-lang.org/blog/blazing-fast-html:
+So we just check to see if fn (viewToHtml) and args (view and model) are the
+same as last frame by comparing the old and new values by reference. This is
+super cheap, and if they are the same, the lazy function can often avoid a ton
+of work. This is a pretty simple trick that can speed things up significantly.
+-}
+viewToHtml : (model -> Element.Element) -> model -> Html.Html msg
+viewToHtml view model =
+    Element.toHtml (view model)
+
+
 {-| -}
 simulate :
     model
@@ -102,17 +117,12 @@ simulate :
     -> (Time -> model -> model)
     -> Simulation model
 simulate init view update =
-    let
-        -- necessary for lazy?
-        viewToHtml =
-            view >> Element.toHtml
-    in
-        Html.program
-            { init = ( 0, init ) ! []
-            , view = \( _, model ) -> lazy viewToHtml model
-            , update = simulationUpdate update
-            , subscriptions = \_ -> AnimationFrame.diffs Diff
-            }
+    Html.program
+        { init = ( 0, init ) ! []
+        , view = \( _, model ) -> lazy2 viewToHtml view model
+        , update = simulationUpdate update
+        , subscriptions = \_ -> AnimationFrame.diffs Diff
+        }
 
 
 simulationUpdate :
@@ -145,17 +155,12 @@ interact :
     -> (Msg -> model -> model)
     -> Interaction model
 interact init view update =
-    let
-        -- necessary for lazy?
-        viewToHtml =
-            view >> Element.toHtml
-    in
-        Html.program
-            { init = ( 0, init ) ! []
-            , view = \( _, model ) -> lazy viewToHtml model
-            , update = interactionUpdate update
-            , subscriptions = interactionSubscriptions
-            }
+    Html.program
+        { init = ( 0, init ) ! []
+        , view = \( _, model ) -> lazy2 viewToHtml view model
+        , update = interactionUpdate update
+        , subscriptions = interactionSubscriptions
+        }
 
 
 interactionUpdate :
