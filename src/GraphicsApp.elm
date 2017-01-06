@@ -98,12 +98,17 @@ simulate :
     -> (Time -> model -> model)
     -> Simulation model
 simulate init view update =
-    Html.program
-        { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy (view >> toHtml) model
-        , update = simulationUpdate update
-        , subscriptions = \_ -> AnimationFrame.diffs Diff
-        }
+    let
+        -- necessary for lazy
+        viewToHtml =
+            view >> toHtml
+    in
+        Html.program
+            { init = ( 0, init ) ! []
+            , view = \( _, model ) -> lazy viewToHtml model
+            , update = simulationUpdate update
+            , subscriptions = \_ -> AnimationFrame.diffs Diff
+            }
 
 
 simulationUpdate :
@@ -136,12 +141,17 @@ interact :
     -> (Msg -> model -> model)
     -> Interaction model
 interact init view update =
-    Html.program
-        { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy (view >> toHtml) model
-        , update = interactionUpdate update
-        , subscriptions = interactionSubscriptions
-        }
+    let
+        -- necessary for lazy
+        viewToHtml =
+            view >> toHtml
+    in
+        Html.program
+            { init = ( 0, init ) ! []
+            , view = \( _, model ) -> lazy viewToHtml model
+            , update = interactionUpdate update
+            , subscriptions = interactionSubscriptions
+            }
 
 
 interactionUpdate :
