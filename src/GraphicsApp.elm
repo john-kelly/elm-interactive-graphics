@@ -99,7 +99,7 @@ simulate :
     -> Simulation model
 simulate init view update =
     let
-        -- necessary for lazy
+        -- necessary for lazy?
         viewToHtml =
             view >> toHtml
     in
@@ -125,7 +125,7 @@ simulationUpdate update (Diff diff) ( time, model ) =
             update updatedTime model
 
         updatedModel =
-            -- necessary for lazy
+            -- necessary for lazy?
             if newModel == model then
                 model
             else
@@ -142,7 +142,7 @@ interact :
     -> Interaction model
 interact init view update =
     let
-        -- necessary for lazy
+        -- necessary for lazy?
         viewToHtml =
             view >> toHtml
     in
@@ -170,7 +170,7 @@ interactionUpdate update msg ( time, model ) =
                     update (TimeTick updatedTime) model
 
                 updatedModel =
-                    -- necessary for lazy
+                    -- necessary for lazy?
                     if newModel == model then
                         model
                     else
@@ -184,7 +184,7 @@ interactionUpdate update msg ( time, model ) =
                     update msg model
 
                 updatedModel =
-                    -- necessary for lazy
+                    -- necessary for lazy?
                     if newModel == model then
                         model
                     else
