@@ -132,20 +132,20 @@ simulationUpdate :
     -> ( ( Time, model ), Cmd TimeMsg )
 simulationUpdate update (Diff diff) ( time, model ) =
     let
-        updatedTime =
+        newTime =
             time + diff
 
-        newModel =
-            update updatedTime model
-
         updatedModel =
+            update newTime model
+
+        newModel =
             -- necessary for lazy?
-            if newModel == model then
+            if updatedModel == model then
                 model
             else
-                newModel
+                updatedModel
     in
-        ( updatedTime, updatedModel ) ! []
+        ( newTime, newModel ) ! []
 
 
 {-| -}
@@ -172,34 +172,34 @@ interactionUpdate update msg ( time, model ) =
     case msg of
         TimeTick diff ->
             let
-                updatedTime =
+                newTime =
                     time + diff
 
-                newModel =
-                    update (TimeTick updatedTime) model
-
                 updatedModel =
+                    update (TimeTick newTime) model
+
+                newModel =
                     -- necessary for lazy?
-                    if newModel == model then
+                    if updatedModel == model then
                         model
                     else
-                        newModel
+                        updatedModel
             in
-                ( updatedTime, updatedModel ) ! []
+                ( newTime, newModel ) ! []
 
         _ ->
             let
-                newModel =
+                updatedModel =
                     update msg model
 
-                updatedModel =
+                newModel =
                     -- necessary for lazy?
-                    if newModel == model then
+                    if updatedModel == model then
                         model
                     else
-                        newModel
+                        updatedModel
             in
-                ( time, updatedModel ) ! []
+                ( time, newModel ) ! []
 
 
 interactionSubscriptions : ( Time, model ) -> Sub Msg
