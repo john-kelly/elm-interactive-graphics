@@ -79,7 +79,7 @@ draw view =
     Html.beginnerProgram
         { model = ()
         , view = \_ -> Element.toHtml view
-        , update = \_ _ -> ()
+        , update = \_ model -> model
         }
 
 
