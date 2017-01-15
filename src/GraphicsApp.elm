@@ -45,7 +45,6 @@ type Msg
     | MouseMove { x : Int, y : Int }
     | KeyDown KeyCode
     | KeyUp KeyCode
-    | KeyPress KeyCode
     | WindowResize { width : Int, height : Int }
 
 
@@ -209,7 +208,6 @@ interactionSubscriptions _ =
         , Mouse.ups (\_ -> MouseUp)
         , Mouse.moves MouseMove
         , AnimationFrame.diffs TimeTick
-        , Keyboard.presses KeyPress
         , Keyboard.downs KeyDown
         , Keyboard.ups KeyUp
         ]
