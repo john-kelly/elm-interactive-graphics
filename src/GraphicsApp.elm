@@ -39,9 +39,9 @@ import Window
 {-| -}
 type Msg
     = TimeTick Time
-    | MouseClick
-    | MouseDown
-    | MouseUp
+    | MouseClick { x : Int, y : Int }
+    | MouseDown { x : Int, y : Int }
+    | MouseUp { x : Int, y : Int }
     | MouseMove { x : Int, y : Int }
     | KeyDown KeyCode
     | KeyUp KeyCode
@@ -203,9 +203,9 @@ interactionSubscriptions : ( Time, model ) -> Sub Msg
 interactionSubscriptions _ =
     Sub.batch
         [ Window.resizes WindowResize
-        , Mouse.clicks (\_ -> MouseClick)
-        , Mouse.downs (\_ -> MouseDown)
-        , Mouse.ups (\_ -> MouseUp)
+        , Mouse.clicks MouseClick
+        , Mouse.downs MouseDown
+        , Mouse.ups MouseUp
         , Mouse.moves MouseMove
         , AnimationFrame.diffs TimeTick
         , Keyboard.downs KeyDown
