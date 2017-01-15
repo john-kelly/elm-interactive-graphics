@@ -33,7 +33,7 @@ import Html.Lazy exposing (lazy2)
 import Keyboard exposing (KeyCode)
 import Mouse exposing (Position)
 import Time exposing (Time)
-import Window exposing (Size)
+import Window
 
 
 {-| -}
@@ -46,7 +46,7 @@ type Msg
     | KeyDown KeyCode
     | KeyUp KeyCode
     | KeyPress KeyCode
-    | WindowResize Size
+    | WindowResize { width : Int, height : Int }
 
 
 type TimeMsg
