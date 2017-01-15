@@ -1,8 +1,8 @@
 module Animation exposing (..)
 
-import GraphicsApp exposing (animate, Animation)
 import Color exposing (..)
 import Collage exposing (..)
+import Collage.Interaction exposing (animate, Animation)
 
 
 view time =

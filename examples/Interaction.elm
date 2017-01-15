@@ -1,8 +1,8 @@
 module Interaction exposing (..)
 
-import GraphicsApp exposing (interact, Interaction, Msg(..))
 import Color exposing (..)
 import Collage exposing (..)
+import Collage.Interaction exposing (interact, Interaction, Msg(..))
 
 
 model =

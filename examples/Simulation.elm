@@ -1,8 +1,8 @@
 module Simulation exposing (..)
 
-import GraphicsApp exposing (simulate, Simulation)
 import Color exposing (..)
 import Collage exposing (..)
+import Collage.Interaction exposing (simulate, Simulation)
 
 
 model =

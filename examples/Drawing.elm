@@ -1,8 +1,8 @@
 module Drawing exposing (..)
 
-import GraphicsApp exposing (draw, Drawing)
 import Color exposing (..)
 import Collage exposing (..)
+import Collage.Interaction exposing (draw, Drawing)
 
 
 view =

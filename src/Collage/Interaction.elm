@@ -1,4 +1,4 @@
-module GraphicsApp
+module Collage.Interaction
     exposing
         ( Drawing
         , draw
