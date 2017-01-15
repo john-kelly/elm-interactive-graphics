@@ -31,7 +31,7 @@ import Element
 import Html
 import Html.Lazy exposing (lazy2)
 import Keyboard exposing (KeyCode)
-import Mouse exposing (Position)
+import Mouse
 import Time exposing (Time)
 import Window
 
@@ -42,7 +42,7 @@ type Msg
     | MouseClick
     | MouseDown
     | MouseUp
-    | MouseMove Position
+    | MouseMove { x : Int, y : Int }
     | KeyDown KeyCode
     | KeyUp KeyCode
     | KeyPress KeyCode
