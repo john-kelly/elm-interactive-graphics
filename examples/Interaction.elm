@@ -23,7 +23,7 @@ update msg (( x, y, dx, dy, radius ) as model) =
             else
                 ( x + dx, y + dy, dx, dy, radius )
 
-        MouseClick ->
+        MouseClick _ ->
             ( x, y, -dx, dy, radius )
 
         _ ->
