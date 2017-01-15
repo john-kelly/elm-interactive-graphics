@@ -9,6 +9,7 @@ module GraphicsApp
         , Interaction
         , interact
         , Msg(..)
+        , Key(..)
         )
 
 {-| Incremental introduction to interactive graphics programs.
@@ -23,7 +24,7 @@ module GraphicsApp
 @docs Simulation, simulate
 
 # Draw with Model and Messages
-@docs Interaction, interact, Msg
+@docs Interaction, interact, Msg, Key
 -}
 
 import AnimationFrame
@@ -43,9 +44,197 @@ type Msg
     | MouseDown { x : Int, y : Int }
     | MouseUp { x : Int, y : Int }
     | MouseMove { x : Int, y : Int }
-    | KeyDown KeyCode
-    | KeyUp KeyCode
+    | KeyDown Key
+    | KeyUp Key
     | WindowResize { width : Int, height : Int }
+
+
+{-| -}
+type Key
+    = Tab
+    | Enter
+    | Shift
+    | Space
+    | Left
+    | Up
+    | Right
+    | Down
+    | Zero
+    | One
+    | Two
+    | Three
+    | Four
+    | Five
+    | Six
+    | Seven
+    | Eight
+    | Nine
+    | A
+    | B
+    | C
+    | D
+    | E
+    | F
+    | G
+    | H
+    | I
+    | J
+    | K
+    | L
+    | M
+    | N
+    | O
+    | P
+    | Q
+    | R
+    | S
+    | T
+    | U
+    | V
+    | W
+    | X
+    | Y
+    | Z
+    | Other KeyCode
+
+
+toKey : KeyCode -> Key
+toKey keyCode =
+    case keyCode of
+        9 ->
+            Tab
+
+        13 ->
+            Enter
+
+        16 ->
+            Shift
+
+        32 ->
+            Space
+
+        37 ->
+            Left
+
+        38 ->
+            Up
+
+        39 ->
+            Right
+
+        40 ->
+            Down
+
+        48 ->
+            Zero
+
+        49 ->
+            One
+
+        50 ->
+            Two
+
+        51 ->
+            Three
+
+        52 ->
+            Four
+
+        53 ->
+            Five
+
+        54 ->
+            Six
+
+        55 ->
+            Seven
+
+        56 ->
+            Eight
+
+        57 ->
+            Nine
+
+        65 ->
+            A
+
+        66 ->
+            B
+
+        67 ->
+            C
+
+        68 ->
+            D
+
+        69 ->
+            E
+
+        70 ->
+            F
+
+        71 ->
+            G
+
+        72 ->
+            H
+
+        73 ->
+            I
+
+        74 ->
+            J
+
+        75 ->
+            K
+
+        76 ->
+            L
+
+        77 ->
+            M
+
+        78 ->
+            N
+
+        79 ->
+            O
+
+        80 ->
+            P
+
+        81 ->
+            Q
+
+        82 ->
+            R
+
+        83 ->
+            S
+
+        84 ->
+            T
+
+        85 ->
+            U
+
+        86 ->
+            V
+
+        87 ->
+            W
+
+        88 ->
+            X
+
+        89 ->
+            Y
+
+        90 ->
+            Z
+
+        _ ->
+            Other keyCode
 
 
 type TimeMsg
@@ -207,7 +396,7 @@ interactionSubscriptions _ =
         , Mouse.downs MouseDown
         , Mouse.ups MouseUp
         , Mouse.moves MouseMove
-        , Keyboard.downs KeyDown
-        , Keyboard.ups KeyUp
+        , Keyboard.downs (toKey >> KeyDown)
+        , Keyboard.ups (toKey >> KeyUp)
         , Window.resizes WindowResize
         ]
