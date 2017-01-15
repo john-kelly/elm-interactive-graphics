@@ -202,12 +202,12 @@ interactionUpdate update msg ( time, model ) =
 interactionSubscriptions : ( Time, model ) -> Sub Msg
 interactionSubscriptions _ =
     Sub.batch
-        [ Window.resizes WindowResize
+        [ AnimationFrame.diffs TimeTick
         , Mouse.clicks MouseClick
         , Mouse.downs MouseDown
         , Mouse.ups MouseUp
         , Mouse.moves MouseMove
-        , AnimationFrame.diffs TimeTick
         , Keyboard.downs KeyDown
         , Keyboard.ups KeyUp
+        , Window.resizes WindowResize
         ]
