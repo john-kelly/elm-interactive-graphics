@@ -94,10 +94,8 @@ animate view =
         }
 
 
-{-| Necessary for lazy?
-
-We need to define at the top level so that the reference of the lazy fn is the
-same across calls
+{-| Necessary for lazy! We need to define at the top level so that the
+reference of the lazy fn is the same across calls.
 
 From http://elm-lang.org/blog/blazing-fast-html:
 So we just check to see if fn (viewToHtml) and args (view and model) are the
@@ -139,7 +137,7 @@ simulationUpdate update (Diff diff) ( time, model ) =
             update newTime model
 
         newModel =
-            -- necessary for lazy?
+            -- necessary for lazy
             if updatedModel == model then
                 model
             else
@@ -179,7 +177,7 @@ interactionUpdate update msg ( time, model ) =
                     update (TimeTick newTime) model
 
                 newModel =
-                    -- necessary for lazy?
+                    -- necessary for lazy
                     if updatedModel == model then
                         model
                     else
@@ -193,7 +191,7 @@ interactionUpdate update msg ( time, model ) =
                     update msg model
 
                 newModel =
-                    -- necessary for lazy?
+                    -- necessary for lazy
                     if updatedModel == model then
                         model
                     else
