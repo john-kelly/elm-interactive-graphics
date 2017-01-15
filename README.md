@@ -1,4 +1,4 @@
-# elm-graphics-app
+# elm-interactive-graphics
 
 Incremental introduction to interactive graphics programs.
 

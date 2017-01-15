@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Incremental introduction to interactive graphics programs.",
-    "repository": "https://github.com/john-kelly/elm-graphics-app.git",
+    "repository": "https://github.com/john-kelly/elm-interactive-graphics.git",
     "license": "BSD3",
     "source-directories": [
         "src"
