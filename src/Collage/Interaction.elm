@@ -9,6 +9,7 @@ module Collage.Interaction
         , Interaction
         , interact
         , Msg(..)
+        , Mouse
         , Key(..)
         , Window
         )
@@ -25,7 +26,7 @@ module Collage.Interaction
 @docs Simulation, simulate
 
 # Draw with Model and Messages
-@docs Interaction, interact, Msg, Key, Window
+@docs Interaction, interact, Msg, Mouse, Key, Window
 -}
 
 import AnimationFrame
@@ -34,10 +35,15 @@ import Collage
 import Html
 import Html.Lazy exposing (lazy3)
 import Keyboard exposing (KeyCode)
-import Mouse
+import Mouse exposing (Position)
 import Task
 import Time exposing (Time)
 import Window exposing (Size)
+
+
+{-| -}
+type alias Mouse =
+    { x : Float, y : Float }
 
 
 {-| -}
@@ -101,10 +107,10 @@ type alias Window =
 {-| -}
 type Msg
     = TimeTick Time
-    | MouseClick { x : Int, y : Int }
-    | MouseDown { x : Int, y : Int }
-    | MouseUp { x : Int, y : Int }
-    | MouseMove { x : Int, y : Int }
+    | MouseClick Mouse
+    | MouseDown Mouse
+    | MouseUp Mouse
+    | MouseMove Mouse
     | KeyDown Key
     | KeyUp Key
     | WindowResize Window
@@ -277,13 +283,13 @@ interactUpdate update msg ({ model } as interactModel) =
 
 
 interactSubs : Model model -> Sub Msg
-interactSubs { time } =
+interactSubs { time, window } =
     Sub.batch
         [ accumTimeSub time
-        , Mouse.clicks MouseClick
-        , Mouse.downs MouseDown
-        , Mouse.ups MouseUp
-        , Mouse.moves MouseMove
+        , Mouse.clicks ((mouseToCartCoord window) >> MouseClick)
+        , Mouse.downs ((mouseToCartCoord window) >> MouseDown)
+        , Mouse.ups ((mouseToCartCoord window) >> MouseUp)
+        , Mouse.moves ((mouseToCartCoord window) >> MouseMove)
         , Keyboard.downs (toKey >> KeyDown)
         , Keyboard.ups (toKey >> KeyUp)
         , windowResizeSub
@@ -326,6 +332,11 @@ windowResizeSub =
 accumTimeSub : Time -> Sub Msg
 accumTimeSub time =
     AnimationFrame.diffs ((\diff -> diff + time) >> TimeTick)
+
+
+mouseToCartCoord : Window -> Position -> Mouse
+mouseToCartCoord { right, top } { x, y } =
+    { x = toFloat x - right, y = top - toFloat y }
 
 
 sizeToWindow : Size -> Window
