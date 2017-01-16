@@ -19,7 +19,7 @@ view time =
         y =
             (sin seconds) * 50
     in
-        collage 400 400 [ move ( x, y ) (filled red (circle radius)) ]
+        move ( x, y ) (filled red (circle radius))
 
 
 main : Animation

@@ -6,7 +6,7 @@ import Collage.Interaction exposing (draw, Drawing)
 
 
 view =
-    collage 400 400 [ filled red (circle 50) ]
+    filled red (circle 50)
 
 
 main : Drawing

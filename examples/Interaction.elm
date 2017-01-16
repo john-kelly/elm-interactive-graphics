@@ -10,7 +10,7 @@ model =
 
 
 view ( x, y, dx, dy, radius ) =
-    collage 400 400 [ move ( x, y ) (filled red (circle radius)) ]
+    move ( x, y ) (filled red (circle radius))
 
 
 update msg (( x, y, dx, dy, radius ) as model) =

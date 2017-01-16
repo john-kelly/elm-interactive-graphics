@@ -29,6 +29,7 @@ module Collage.Interaction
 
 import AnimationFrame
 import Element
+import Collage
 import Html
 import Html.Lazy exposing (lazy2)
 import Keyboard exposing (KeyCode)
@@ -261,51 +262,51 @@ type alias Interaction model =
     Program Never ( Time, model ) Msg
 
 
+{-| Necessary for lazy! We need to define at the top level so that the
+reference of the lazy fn is the same across calls.
+
+From http://elm-lang.org/blog/blazing-fast-html:
+So we just check to see if fn (viewAndModelToHtml) and args (view and model) are
+the same as last frame by comparing the old and new values by reference. This is
+super cheap, and if they are the same, the lazy function can often avoid a ton
+of work. This is a pretty simple trick that can speed things up significantly.
+-}
+viewAndModelToHtml : (model -> Collage.Form) -> model -> Html.Html msg
+viewAndModelToHtml view model =
+    Collage.collage 500 500 [ view model ] |> Element.toHtml
+
+
 {-| -}
-draw : Element.Element -> Drawing
+draw : Collage.Form -> Drawing
 draw view =
     Html.beginnerProgram
         { model = ()
-        , view = \_ -> Element.toHtml view
+        , view = \_ -> viewAndModelToHtml (\_ -> view) ()
         , update = \_ model -> model
         }
 
 
 {-| -}
-animate : (Time -> Element.Element) -> Animation
+animate : (Time -> Collage.Form) -> Animation
 animate view =
     Html.program
         { init = 0 ! []
-        , view = \time -> Element.toHtml (view time)
+        , view = \time -> viewAndModelToHtml view time
         , update = \(Diff diff) time -> (time + diff) ! []
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
 
 
-{-| Necessary for lazy! We need to define at the top level so that the
-reference of the lazy fn is the same across calls.
-
-From http://elm-lang.org/blog/blazing-fast-html:
-So we just check to see if fn (viewToHtml) and args (view and model) are the
-same as last frame by comparing the old and new values by reference. This is
-super cheap, and if they are the same, the lazy function can often avoid a ton
-of work. This is a pretty simple trick that can speed things up significantly.
--}
-viewToHtml : (model -> Element.Element) -> model -> Html.Html msg
-viewToHtml view model =
-    Element.toHtml (view model)
-
-
 {-| -}
 simulate :
     model
-    -> (model -> Element.Element)
+    -> (model -> Collage.Form)
     -> (Time -> model -> model)
     -> Simulation model
 simulate init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy2 viewToHtml view model
+        , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
         , update = simulationUpdate update
         , subscriptions = \_ -> AnimationFrame.diffs Diff
         }
@@ -337,13 +338,13 @@ simulationUpdate update (Diff diff) ( time, model ) =
 {-| -}
 interact :
     model
-    -> (model -> Element.Element)
+    -> (model -> Collage.Form)
     -> (Msg -> model -> model)
     -> Interaction model
 interact init view update =
     Html.program
         { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy2 viewToHtml view model
+        , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
         , update = interactionUpdate update
         , subscriptions = interactionSubscriptions
         }
