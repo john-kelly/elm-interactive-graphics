@@ -13,13 +13,10 @@ view time =
         radius =
             50
 
-        x =
-            50
-
         y =
             (sin seconds) * 50
     in
-        move ( x, y ) (filled red (circle radius))
+        move ( 0, y ) (filled red (circle radius))
 
 
 main : Animation

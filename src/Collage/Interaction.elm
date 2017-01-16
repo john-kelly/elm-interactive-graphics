@@ -31,23 +31,12 @@ import AnimationFrame
 import Element
 import Collage
 import Html
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy3)
 import Keyboard exposing (KeyCode)
 import Mouse
+import Task
 import Time exposing (Time)
-import Window
-
-
-{-| -}
-type Msg
-    = TimeTick Time
-    | MouseClick { x : Int, y : Int }
-    | MouseDown { x : Int, y : Int }
-    | MouseUp { x : Int, y : Int }
-    | MouseMove { x : Int, y : Int }
-    | KeyDown Key
-    | KeyUp Key
-    | WindowResize { width : Int, height : Int }
+import Window exposing (Size)
 
 
 {-| -}
@@ -97,6 +86,215 @@ type Key
     | Y
     | Z
     | Other KeyCode
+
+
+{-| -}
+type Msg
+    = TimeTick Time
+    | MouseClick { x : Int, y : Int }
+    | MouseDown { x : Int, y : Int }
+    | MouseUp { x : Int, y : Int }
+    | MouseMove { x : Int, y : Int }
+    | KeyDown Key
+    | KeyUp Key
+    | WindowResize { width : Int, height : Int }
+
+
+type alias Model model =
+    { size : Size
+    , time : Time
+    , model : model
+    }
+
+
+{-| -}
+type alias Drawing =
+    Program Never (Model ()) Msg
+
+
+{-| -}
+type alias Animation =
+    Program Never (Model ()) Msg
+
+
+{-| -}
+type alias Simulation model =
+    Program Never (Model model) Msg
+
+
+{-| -}
+type alias Interaction model =
+    Program Never (Model model) Msg
+
+
+{-| -}
+draw : Collage.Form -> Drawing
+draw view =
+    Html.program
+        { init = init () WindowResize
+        , view = \{ size } -> viewModelSizeToHtml (\_ -> view) () size
+        , update = drawUpdate
+        , subscriptions = \_ -> Window.resizes WindowResize
+        }
+
+
+drawUpdate msg model =
+    case msg of
+        WindowResize newSize ->
+            { model | size = newSize } ! []
+
+        _ ->
+            model ! []
+
+
+{-| -}
+animate : (Time -> Collage.Form) -> Animation
+animate view =
+    Html.program
+        { init = init () WindowResize
+        , view = \{ time, size } -> viewModelSizeToHtml view time size
+        , update = animateUpdate
+        , subscriptions = animateSubs
+        }
+
+
+animateUpdate msg model =
+    case msg of
+        TimeTick newTime ->
+            { model | time = newTime } ! []
+
+        WindowResize newSize ->
+            { model | size = newSize } ! []
+
+        _ ->
+            model ! []
+
+
+animateSubs { time } =
+    Sub.batch
+        [ accumTimeSub time TimeTick
+        , Window.resizes WindowResize
+        ]
+
+
+{-| -}
+simulate :
+    model
+    -> (model -> Collage.Form)
+    -> (Time -> model -> model)
+    -> Simulation model
+simulate start view update =
+    Html.program
+        { init = init start WindowResize
+        , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
+        , update = simulateUpdate update
+        , subscriptions = simulateSubs
+        }
+
+
+simulateUpdate update msg ({ model } as simulateModel) =
+    case msg of
+        TimeTick newTime ->
+            let
+                updatedModel =
+                    update newTime model
+
+                newModel =
+                    -- necessary for lazy
+                    if updatedModel == model then
+                        model
+                    else
+                        updatedModel
+            in
+                { simulateModel | time = newTime, model = newModel } ! []
+
+        WindowResize newSize ->
+            { simulateModel | size = newSize } ! []
+
+        _ ->
+            simulateModel ! []
+
+
+simulateSubs { time } =
+    Sub.batch
+        [ accumTimeSub time TimeTick
+        , Window.resizes WindowResize
+        ]
+
+
+{-| -}
+interact :
+    model
+    -> (model -> Collage.Form)
+    -> (Msg -> model -> model)
+    -> Interaction model
+interact start view update =
+    Html.program
+        { init = init start WindowResize
+        , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
+        , update = interactUpdate update
+        , subscriptions = interactSubs
+        }
+
+
+interactUpdate update msg ({ model } as interactModel) =
+    let
+        updatedModel =
+            update msg model
+
+        newModel =
+            -- necessary for lazy
+            if updatedModel == model then
+                model
+            else
+                updatedModel
+    in
+        case msg of
+            TimeTick newTime ->
+                { interactModel | time = newTime, model = newModel } ! []
+
+            WindowResize newSize ->
+                { interactModel | size = newSize, model = newModel } ! []
+
+            _ ->
+                { interactModel | model = newModel } ! []
+
+
+interactSubs { time } =
+    Sub.batch
+        [ accumTimeSub time TimeTick
+        , Mouse.clicks MouseClick
+        , Mouse.downs MouseDown
+        , Mouse.ups MouseUp
+        , Mouse.moves MouseMove
+        , Keyboard.downs (toKey >> KeyDown)
+        , Keyboard.ups (toKey >> KeyUp)
+        , Window.resizes WindowResize
+        ]
+
+
+{-| Necessary for lazy! We need to define at the top level so that the
+reference of the lazy fn is the same across calls.
+
+From http://elm-lang.org/blog/blazing-fast-html:
+So we just check to see if fn (viewModelSizeToHtml) and args (view and model) are
+the same as last frame by comparing the old and new values by reference. This is
+super cheap, and if they are the same, the lazy function can often avoid a ton
+of work. This is a pretty simple trick that can speed things up significantly.
+-}
+viewModelSizeToHtml : (model -> Collage.Form) -> model -> Size -> Html.Html msg
+viewModelSizeToHtml view model { width, height } =
+    Collage.collage width height [ view model ] |> Element.toHtml
+
+
+init : model -> (Size -> msg) -> ( Model model, Cmd msg )
+init model tagger =
+    Model { width = 0, height = 0 } 0 model ! [ Task.perform tagger Window.size ]
+
+
+accumTimeSub : Time -> (Time -> msg) -> Sub msg
+accumTimeSub time tagger =
+    AnimationFrame.diffs ((+) time >> tagger)
 
 
 toKey : KeyCode -> Key
@@ -236,167 +434,3 @@ toKey keyCode =
 
         _ ->
             Other keyCode
-
-
-type TimeMsg
-    = TimeMsg Time
-
-
-{-| -}
-type alias Drawing =
-    Program Never () Never
-
-
-{-| -}
-type alias Animation =
-    Program Never Time TimeMsg
-
-
-{-| -}
-type alias Simulation model =
-    Program Never ( Time, model ) TimeMsg
-
-
-{-| -}
-type alias Interaction model =
-    Program Never ( Time, model ) Msg
-
-
-{-| Necessary for lazy! We need to define at the top level so that the
-reference of the lazy fn is the same across calls.
-
-From http://elm-lang.org/blog/blazing-fast-html:
-So we just check to see if fn (viewAndModelToHtml) and args (view and model) are
-the same as last frame by comparing the old and new values by reference. This is
-super cheap, and if they are the same, the lazy function can often avoid a ton
-of work. This is a pretty simple trick that can speed things up significantly.
--}
-viewAndModelToHtml : (model -> Collage.Form) -> model -> Html.Html msg
-viewAndModelToHtml view model =
-    Collage.collage 500 500 [ view model ] |> Element.toHtml
-
-
-{-| -}
-draw : Collage.Form -> Drawing
-draw view =
-    Html.beginnerProgram
-        { model = ()
-        , view = \_ -> viewAndModelToHtml (\_ -> view) ()
-        , update = \_ model -> model
-        }
-
-
-{-| -}
-animate : (Time -> Collage.Form) -> Animation
-animate view =
-    Html.program
-        { init = 0 ! []
-        , view = \time -> viewAndModelToHtml view time
-        , update = \(TimeMsg newTime) _ -> newTime ! []
-        , subscriptions = \time -> accumTimeSub time TimeMsg
-        }
-
-
-{-| -}
-simulate :
-    model
-    -> (model -> Collage.Form)
-    -> (Time -> model -> model)
-    -> Simulation model
-simulate init view update =
-    Html.program
-        { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
-        , update = simulationUpdate update
-        , subscriptions = \( time, _ ) -> accumTimeSub time TimeMsg
-        }
-
-
-simulationUpdate :
-    (Time -> model -> model)
-    -> TimeMsg
-    -> ( Time, model )
-    -> ( ( Time, model ), Cmd TimeMsg )
-simulationUpdate update (TimeMsg newTime) ( _, model ) =
-    let
-        updatedModel =
-            update newTime model
-
-        newModel =
-            -- necessary for lazy
-            if updatedModel == model then
-                model
-            else
-                updatedModel
-    in
-        ( newTime, newModel ) ! []
-
-
-{-| -}
-interact :
-    model
-    -> (model -> Collage.Form)
-    -> (Msg -> model -> model)
-    -> Interaction model
-interact init view update =
-    Html.program
-        { init = ( 0, init ) ! []
-        , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
-        , update = interactionUpdate update
-        , subscriptions = interactSubs
-        }
-
-
-interactionUpdate :
-    (Msg -> model -> model)
-    -> Msg
-    -> ( Time, model )
-    -> ( ( Time, model ), Cmd Msg )
-interactionUpdate update msg ( time, model ) =
-    case msg of
-        TimeTick newTime ->
-            let
-                updatedModel =
-                    update (TimeTick newTime) model
-
-                newModel =
-                    -- necessary for lazy
-                    if updatedModel == model then
-                        model
-                    else
-                        updatedModel
-            in
-                ( newTime, newModel ) ! []
-
-        _ ->
-            let
-                updatedModel =
-                    update msg model
-
-                newModel =
-                    -- necessary for lazy
-                    if updatedModel == model then
-                        model
-                    else
-                        updatedModel
-            in
-                ( time, newModel ) ! []
-
-
-interactSubs : ( Time, model ) -> Sub Msg
-interactSubs ( time, _ ) =
-    Sub.batch
-        [ accumTimeSub time TimeTick
-        , Mouse.clicks MouseClick
-        , Mouse.downs MouseDown
-        , Mouse.ups MouseUp
-        , Mouse.moves MouseMove
-        , Keyboard.downs (toKey >> KeyDown)
-        , Keyboard.ups (toKey >> KeyUp)
-        , Window.resizes WindowResize
-        ]
-
-
-accumTimeSub : Time -> (Time -> msg) -> Sub msg
-accumTimeSub time tagger =
-    AnimationFrame.diffs ((+) time >> tagger)
