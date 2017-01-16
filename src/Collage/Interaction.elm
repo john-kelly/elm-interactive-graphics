@@ -343,7 +343,7 @@ interact init view update =
         { init = ( 0, init ) ! []
         , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
         , update = interactionUpdate update
-        , subscriptions = interactionSubscriptions
+        , subscriptions = interactSubs
         }
 
 
@@ -383,8 +383,8 @@ interactionUpdate update msg ( time, model ) =
                 ( time, newModel ) ! []
 
 
-interactionSubscriptions : ( Time, model ) -> Sub Msg
-interactionSubscriptions ( time, _ ) =
+interactSubs : ( Time, model ) -> Sub Msg
+interactSubs ( time, _ ) =
     Sub.batch
         [ accumTimeSub time TimeTick
         , Mouse.clicks MouseClick
