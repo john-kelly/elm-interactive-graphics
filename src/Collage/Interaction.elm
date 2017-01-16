@@ -131,13 +131,14 @@ type alias Interaction model =
 draw : Collage.Form -> Drawing
 draw view =
     Html.program
-        { init = init () WindowResize
+        { init = init ()
         , view = \{ size } -> viewModelSizeToHtml (\_ -> view) () size
         , update = drawUpdate
         , subscriptions = \_ -> Window.resizes WindowResize
         }
 
 
+drawUpdate : Msg -> Model () -> ( Model (), Cmd Msg )
 drawUpdate msg model =
     case msg of
         WindowResize newSize ->
@@ -151,13 +152,14 @@ drawUpdate msg model =
 animate : (Time -> Collage.Form) -> Animation
 animate view =
     Html.program
-        { init = init () WindowResize
+        { init = init ()
         , view = \{ time, size } -> viewModelSizeToHtml view time size
         , update = animateUpdate
         , subscriptions = animateSubs
         }
 
 
+animateUpdate : Msg -> Model () -> ( Model (), Cmd Msg )
 animateUpdate msg model =
     case msg of
         TimeTick newTime ->
@@ -170,6 +172,7 @@ animateUpdate msg model =
             model ! []
 
 
+animateSubs : Model () -> Sub Msg
 animateSubs { time } =
     Sub.batch
         [ accumTimeSub time TimeTick
@@ -185,13 +188,14 @@ simulate :
     -> Simulation model
 simulate start view update =
     Html.program
-        { init = init start WindowResize
+        { init = init start
         , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
         , update = simulateUpdate update
         , subscriptions = simulateSubs
         }
 
 
+simulateUpdate : (Time -> model -> model) -> Msg -> Model model -> ( Model model, Cmd Msg )
 simulateUpdate update msg ({ model } as simulateModel) =
     case msg of
         TimeTick newTime ->
@@ -215,6 +219,7 @@ simulateUpdate update msg ({ model } as simulateModel) =
             simulateModel ! []
 
 
+simulateSubs : Model model -> Sub Msg
 simulateSubs { time } =
     Sub.batch
         [ accumTimeSub time TimeTick
@@ -230,13 +235,14 @@ interact :
     -> Interaction model
 interact start view update =
     Html.program
-        { init = init start WindowResize
+        { init = init start
         , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
         , update = interactUpdate update
         , subscriptions = interactSubs
         }
 
 
+interactUpdate : (Msg -> model -> model) -> Msg -> Model model -> ( Model model, Cmd Msg )
 interactUpdate update msg ({ model } as interactModel) =
     let
         updatedModel =
@@ -260,6 +266,7 @@ interactUpdate update msg ({ model } as interactModel) =
                 { interactModel | model = newModel } ! []
 
 
+interactSubs : Model model -> Sub Msg
 interactSubs { time } =
     Sub.batch
         [ accumTimeSub time TimeTick
@@ -287,9 +294,9 @@ viewModelSizeToHtml view model { width, height } =
     Collage.collage width height [ view model ] |> Element.toHtml
 
 
-init : model -> (Size -> msg) -> ( Model model, Cmd msg )
-init model tagger =
-    Model { width = 0, height = 0 } 0 model ! [ Task.perform tagger Window.size ]
+init : model -> ( Model model, Cmd Msg )
+init model =
+    Model { width = 0, height = 0 } 0 model ! [ Task.perform WindowResize Window.size ]
 
 
 accumTimeSub : Time -> (Time -> msg) -> Sub msg
