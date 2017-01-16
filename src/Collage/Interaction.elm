@@ -10,6 +10,7 @@ module Collage.Interaction
         , interact
         , Msg(..)
         , Key(..)
+        , Window
         )
 
 {-| Incremental introduction to interactive graphics programs.
@@ -89,6 +90,15 @@ type Key
 
 
 {-| -}
+type alias Window =
+    { top : Float
+    , bottom : Float
+    , left : Float
+    , right : Float
+    }
+
+
+{-| -}
 type Msg
     = TimeTick Time
     | MouseClick { x : Int, y : Int }
@@ -97,11 +107,11 @@ type Msg
     | MouseMove { x : Int, y : Int }
     | KeyDown Key
     | KeyUp Key
-    | WindowResize { width : Int, height : Int }
+    | WindowResize Window
 
 
 type alias Model model =
-    { size : Size
+    { size : Window
     , time : Time
     , model : model
     }
@@ -134,7 +144,7 @@ draw view =
         { init = init ()
         , view = \{ size } -> viewModelSizeToHtml (\_ -> view) () size
         , update = drawUpdate
-        , subscriptions = \_ -> Window.resizes WindowResize
+        , subscriptions = \_ -> Window.resizes (sizeToWindow >> WindowResize)
         }
 
 
@@ -176,7 +186,7 @@ animateSubs : Model () -> Sub Msg
 animateSubs { time } =
     Sub.batch
         [ accumTimeSub time TimeTick
-        , Window.resizes WindowResize
+        , Window.resizes (sizeToWindow >> WindowResize)
         ]
 
 
@@ -223,7 +233,7 @@ simulateSubs : Model model -> Sub Msg
 simulateSubs { time } =
     Sub.batch
         [ accumTimeSub time TimeTick
-        , Window.resizes WindowResize
+        , Window.resizes (sizeToWindow >> WindowResize)
         ]
 
 
@@ -276,7 +286,7 @@ interactSubs { time } =
         , Mouse.moves MouseMove
         , Keyboard.downs (toKey >> KeyDown)
         , Keyboard.ups (toKey >> KeyUp)
-        , Window.resizes WindowResize
+        , Window.resizes (sizeToWindow >> WindowResize)
         ]
 
 
@@ -289,19 +299,56 @@ the same as last frame by comparing the old and new values by reference. This is
 super cheap, and if they are the same, the lazy function can often avoid a ton
 of work. This is a pretty simple trick that can speed things up significantly.
 -}
-viewModelSizeToHtml : (model -> Collage.Form) -> model -> Size -> Html.Html msg
-viewModelSizeToHtml view model { width, height } =
-    Collage.collage width height [ view model ] |> Element.toHtml
+viewModelSizeToHtml : (model -> Collage.Form) -> model -> Window -> Html.Html msg
+viewModelSizeToHtml view model window =
+    let
+        { width, height } =
+            windowToSize window
+    in
+        Collage.collage width height [ view model ]
+            |> Element.toHtml
 
 
 init : model -> ( Model model, Cmd Msg )
 init model =
-    Model { width = 0, height = 0 } 0 model ! [ Task.perform WindowResize Window.size ]
+    let
+        windowCmd =
+            Task.perform (sizeToWindow >> WindowResize) Window.size
+    in
+        Model (Window 0 0 0 0) 0 model ! [ windowCmd ]
 
 
 accumTimeSub : Time -> (Time -> msg) -> Sub msg
 accumTimeSub time tagger =
     AnimationFrame.diffs ((+) time >> tagger)
+
+
+sizeToWindow : Size -> Window
+sizeToWindow { width, height } =
+    let
+        w =
+            toFloat width / 2
+
+        h =
+            toFloat height / 2
+    in
+        { top = h
+        , bottom = -h
+        , left = -w
+        , right = w
+        }
+
+
+windowToSize : Window -> Size
+windowToSize { top, bottom, left, right } =
+    let
+        width =
+            round (right - left)
+
+        height =
+            round (top - bottom)
+    in
+        { width = width, height = height }
 
 
 toKey : KeyCode -> Key
