@@ -111,7 +111,7 @@ type Msg
 
 
 type alias Model model =
-    { size : Window
+    { window : Window
     , time : Time
     , model : model
     }
@@ -142,7 +142,7 @@ draw : Collage.Form -> Drawing
 draw view =
     Html.program
         { init = init ()
-        , view = \{ size } -> viewModelSizeToHtml (\_ -> view) () size
+        , view = \{ window } -> viewModelWindowToHtml (\_ -> view) () window
         , update = drawUpdate
         , subscriptions = \_ -> Window.resizes (sizeToWindow >> WindowResize)
         }
@@ -151,8 +151,8 @@ draw view =
 drawUpdate : Msg -> Model () -> ( Model (), Cmd Msg )
 drawUpdate msg model =
     case msg of
-        WindowResize newSize ->
-            { model | size = newSize } ! []
+        WindowResize newWindow ->
+            { model | window = newWindow } ! []
 
         _ ->
             model ! []
@@ -163,7 +163,7 @@ animate : (Time -> Collage.Form) -> Animation
 animate view =
     Html.program
         { init = init ()
-        , view = \{ time, size } -> viewModelSizeToHtml view time size
+        , view = \{ time, window } -> viewModelWindowToHtml view time window
         , update = animateUpdate
         , subscriptions = animateSubs
         }
@@ -175,8 +175,8 @@ animateUpdate msg model =
         TimeTick newTime ->
             { model | time = newTime } ! []
 
-        WindowResize newSize ->
-            { model | size = newSize } ! []
+        WindowResize newWindow ->
+            { model | window = newWindow } ! []
 
         _ ->
             model ! []
@@ -185,7 +185,7 @@ animateUpdate msg model =
 animateSubs : Model () -> Sub Msg
 animateSubs { time } =
     Sub.batch
-        [ accumTimeSub time TimeTick
+        [ accumTimeSub time
         , Window.resizes (sizeToWindow >> WindowResize)
         ]
 
@@ -199,7 +199,7 @@ simulate :
 simulate start view update =
     Html.program
         { init = init start
-        , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
+        , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
         , update = simulateUpdate update
         , subscriptions = simulateSubs
         }
@@ -222,8 +222,8 @@ simulateUpdate update msg ({ model } as simulateModel) =
             in
                 { simulateModel | time = newTime, model = newModel } ! []
 
-        WindowResize newSize ->
-            { simulateModel | size = newSize } ! []
+        WindowResize newWindow ->
+            { simulateModel | window = newWindow } ! []
 
         _ ->
             simulateModel ! []
@@ -232,7 +232,7 @@ simulateUpdate update msg ({ model } as simulateModel) =
 simulateSubs : Model model -> Sub Msg
 simulateSubs { time } =
     Sub.batch
-        [ accumTimeSub time TimeTick
+        [ accumTimeSub time
         , Window.resizes (sizeToWindow >> WindowResize)
         ]
 
@@ -246,7 +246,7 @@ interact :
 interact start view update =
     Html.program
         { init = init start
-        , view = \{ model, size } -> lazy3 viewModelSizeToHtml view model size
+        , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
         , update = interactUpdate update
         , subscriptions = interactSubs
         }
@@ -269,8 +269,8 @@ interactUpdate update msg ({ model } as interactModel) =
             TimeTick newTime ->
                 { interactModel | time = newTime, model = newModel } ! []
 
-            WindowResize newSize ->
-                { interactModel | size = newSize, model = newModel } ! []
+            WindowResize newWindow ->
+                { interactModel | window = newWindow, model = newModel } ! []
 
             _ ->
                 { interactModel | model = newModel } ! []
@@ -279,7 +279,7 @@ interactUpdate update msg ({ model } as interactModel) =
 interactSubs : Model model -> Sub Msg
 interactSubs { time } =
     Sub.batch
-        [ accumTimeSub time TimeTick
+        [ accumTimeSub time
         , Mouse.clicks MouseClick
         , Mouse.downs MouseDown
         , Mouse.ups MouseUp
@@ -294,13 +294,13 @@ interactSubs { time } =
 reference of the lazy fn is the same across calls.
 
 From http://elm-lang.org/blog/blazing-fast-html:
-So we just check to see if fn (viewModelSizeToHtml) and args (view and model) are
+So we just check to see if fn (viewModelWindowToHtml) and args (view, model, and window) are
 the same as last frame by comparing the old and new values by reference. This is
 super cheap, and if they are the same, the lazy function can often avoid a ton
 of work. This is a pretty simple trick that can speed things up significantly.
 -}
-viewModelSizeToHtml : (model -> Collage.Form) -> model -> Window -> Html.Html msg
-viewModelSizeToHtml view model window =
+viewModelWindowToHtml : (model -> Collage.Form) -> model -> Window -> Html.Html msg
+viewModelWindowToHtml view model window =
     let
         { width, height } =
             windowToSize window
@@ -318,9 +318,9 @@ init model =
         Model (Window 0 0 0 0) 0 model ! [ windowCmd ]
 
 
-accumTimeSub : Time -> (Time -> msg) -> Sub msg
-accumTimeSub time tagger =
-    AnimationFrame.diffs ((+) time >> tagger)
+accumTimeSub : Time -> Sub Msg
+accumTimeSub time =
+    AnimationFrame.diffs ((\diff -> diff + time) >> TimeTick)
 
 
 sizeToWindow : Size -> Window
