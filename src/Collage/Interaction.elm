@@ -144,7 +144,7 @@ draw view =
         { init = init ()
         , view = \{ window } -> viewModelWindowToHtml (\_ -> view) () window
         , update = drawUpdate
-        , subscriptions = \_ -> Window.resizes (sizeToWindow >> WindowResize)
+        , subscriptions = \_ -> windowResizeSub
         }
 
 
@@ -186,7 +186,7 @@ animateSubs : Model () -> Sub Msg
 animateSubs { time } =
     Sub.batch
         [ accumTimeSub time
-        , Window.resizes (sizeToWindow >> WindowResize)
+        , windowResizeSub
         ]
 
 
@@ -233,7 +233,7 @@ simulateSubs : Model model -> Sub Msg
 simulateSubs { time } =
     Sub.batch
         [ accumTimeSub time
-        , Window.resizes (sizeToWindow >> WindowResize)
+        , windowResizeSub
         ]
 
 
@@ -286,7 +286,7 @@ interactSubs { time } =
         , Mouse.moves MouseMove
         , Keyboard.downs (toKey >> KeyDown)
         , Keyboard.ups (toKey >> KeyUp)
-        , Window.resizes (sizeToWindow >> WindowResize)
+        , windowResizeSub
         ]
 
 
@@ -316,6 +316,11 @@ init model =
             Task.perform (sizeToWindow >> WindowResize) Window.size
     in
         Model (Window 0 0 0 0) 0 model ! [ windowCmd ]
+
+
+windowResizeSub : Sub Msg
+windowResizeSub =
+    Window.resizes (sizeToWindow >> WindowResize)
 
 
 accumTimeSub : Time -> Sub Msg
