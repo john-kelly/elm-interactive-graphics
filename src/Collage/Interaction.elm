@@ -25,7 +25,7 @@ module Collage.Interaction
 @docs Simulation, simulate
 
 # Draw with Model and Messages
-@docs Interaction, interact, Msg, Key
+@docs Interaction, interact, Msg, Key, Window
 -}
 
 import AnimationFrame
