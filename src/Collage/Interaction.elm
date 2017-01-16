@@ -239,7 +239,7 @@ toKey keyCode =
 
 
 type TimeMsg
-    = Diff Time
+    = TimeMsg Time
 
 
 {-| -}
@@ -292,8 +292,8 @@ animate view =
     Html.program
         { init = 0 ! []
         , view = \time -> viewAndModelToHtml view time
-        , update = \(Diff diff) time -> (time + diff) ! []
-        , subscriptions = \_ -> AnimationFrame.diffs Diff
+        , update = \(TimeMsg newTime) _ -> newTime ! []
+        , subscriptions = \time -> accumTimeSub time TimeMsg
         }
 
 
@@ -308,7 +308,7 @@ simulate init view update =
         { init = ( 0, init ) ! []
         , view = \( _, model ) -> lazy2 viewAndModelToHtml view model
         , update = simulationUpdate update
-        , subscriptions = \_ -> AnimationFrame.diffs Diff
+        , subscriptions = \( time, _ ) -> accumTimeSub time TimeMsg
         }
 
 
@@ -317,11 +317,8 @@ simulationUpdate :
     -> TimeMsg
     -> ( Time, model )
     -> ( ( Time, model ), Cmd TimeMsg )
-simulationUpdate update (Diff diff) ( time, model ) =
+simulationUpdate update (TimeMsg newTime) ( _, model ) =
     let
-        newTime =
-            time + diff
-
         updatedModel =
             update newTime model
 
@@ -357,11 +354,8 @@ interactionUpdate :
     -> ( ( Time, model ), Cmd Msg )
 interactionUpdate update msg ( time, model ) =
     case msg of
-        TimeTick diff ->
+        TimeTick newTime ->
             let
-                newTime =
-                    time + diff
-
                 updatedModel =
                     update (TimeTick newTime) model
 
@@ -390,9 +384,9 @@ interactionUpdate update msg ( time, model ) =
 
 
 interactionSubscriptions : ( Time, model ) -> Sub Msg
-interactionSubscriptions _ =
+interactionSubscriptions ( time, _ ) =
     Sub.batch
-        [ AnimationFrame.diffs TimeTick
+        [ accumTimeSub time TimeTick
         , Mouse.clicks MouseClick
         , Mouse.downs MouseDown
         , Mouse.ups MouseUp
@@ -401,3 +395,8 @@ interactionSubscriptions _ =
         , Keyboard.ups (toKey >> KeyUp)
         , Window.resizes WindowResize
         ]
+
+
+accumTimeSub : Time -> (Time -> msg) -> Sub msg
+accumTimeSub time tagger =
+    AnimationFrame.diffs ((+) time >> tagger)
