@@ -2,6 +2,7 @@ module Collage.Interaction
     exposing
         ( Drawing
         , draw
+        , overlay
         , Animation
         , animate
         , Simulation
@@ -17,7 +18,7 @@ module Collage.Interaction
 {-| Incremental introduction to interactive graphics programs.
 
 # Draw
-@docs Drawing, draw
+@docs Drawing, draw, overlay
 
 # Draw with Time
 @docs Animation, animate
@@ -141,6 +142,12 @@ type alias Simulation model =
 {-| -}
 type alias Interaction model =
     Program Never (Model model) Msg
+
+
+{-| -}
+overlay : Collage.Form -> Collage.Form -> Collage.Form
+overlay topForm bottomForm =
+    Collage.group [ bottomForm, topForm ]
 
 
 {-| -}
