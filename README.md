@@ -1,6 +1,6 @@
 # elm-interactive-graphics
 
-Incremental introduction to interactive graphics programs.
+Gradual introduction to interactive graphics programs.
 
 #### The Steps:
 1. Drawing: draw elements
