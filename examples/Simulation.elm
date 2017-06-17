@@ -2,19 +2,19 @@ module Simulation exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Interaction exposing (simulate, Simulation)
+import Collage.Program exposing (simulationProgram, SimulationProgram)
 
 
 type alias Model =
     ( Float, Float, Float, Float, Float )
 
 
-model : Model
-model =
+init : Model
+init =
     ( 0, 0, 2, 1, 30 )
 
 
-view : Model -> Collage.Form
+view : Model -> Form
 view ( x, y, dx, dy, radius ) =
     move ( x, y ) (filled red (circle radius))
 
@@ -29,6 +29,10 @@ update time ( x, y, dx, dy, radius ) =
         ( x + dx, y + dy, dx, dy, radius )
 
 
-main : Simulation Model
+main : SimulationProgram Model
 main =
-    simulate model view update
+    simulationProgram
+        { init = init
+        , view = view
+        , update = update
+        }

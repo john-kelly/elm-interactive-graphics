@@ -1,14 +1,13 @@
-module Collage.Interaction
+module Collage.Program
     exposing
-        ( Drawing
-        , draw
-        , overlay
-        , Animation
-        , animate
-        , Simulation
-        , simulate
-        , Interaction
-        , interact
+        ( DrawingProgram
+        , drawingProgram
+        , AnimationProgram
+        , animationProgram
+        , SimulationProgram
+        , simulationProgram
+        , InteractiveProgram
+        , interactiveProgram
         , Msg(..)
         , Mouse
         , Key(..)
@@ -18,16 +17,16 @@ module Collage.Interaction
 {-| Incremental introduction to interactive graphics programs.
 
 # Draw
-@docs Drawing, draw, overlay
+@docs DrawingProgram, drawingProgram
 
 # Draw with Time
-@docs Animation, animate
+@docs AnimationProgram, animationProgram
 
 # Draw with Time and Model
-@docs Simulation, simulate
+@docs SimulationProgram, simulationProgram
 
 # Draw with Model and Messages
-@docs Interaction, interact, Msg, Mouse, Key, Window
+@docs InteractiveProgram, interactiveProgram, Msg, Mouse, Key, Window
 -}
 
 import AnimationFrame
@@ -125,36 +124,30 @@ type alias Model model =
 
 
 {-| -}
-type alias Drawing =
+type alias DrawingProgram =
     Program Never (Model ()) Msg
 
 
 {-| -}
-type alias Animation =
+type alias AnimationProgram =
     Program Never (Model ()) Msg
 
 
 {-| -}
-type alias Simulation model =
+type alias SimulationProgram model =
     Program Never (Model model) Msg
 
 
 {-| -}
-type alias Interaction model =
+type alias InteractiveProgram model =
     Program Never (Model model) Msg
 
 
 {-| -}
-overlay : Collage.Form -> Collage.Form -> Collage.Form
-overlay topForm bottomForm =
-    Collage.group [ bottomForm, topForm ]
-
-
-{-| -}
-draw : Collage.Form -> Drawing
-draw view =
+drawingProgram : Collage.Form -> DrawingProgram
+drawingProgram view =
     Html.program
-        { init = init ()
+        { init = wrapStudentInit ()
         , view = \{ window } -> viewModelWindowToHtml (\_ -> view) () window
         , update = drawUpdate
         , subscriptions = \_ -> windowResizeSub
@@ -172,10 +165,10 @@ drawUpdate msg model =
 
 
 {-| -}
-animate : (Time -> Collage.Form) -> Animation
-animate view =
+animationProgram : (Time -> Collage.Form) -> AnimationProgram
+animationProgram view =
     Html.program
-        { init = init ()
+        { init = wrapStudentInit ()
         , view = \{ time, window } -> viewModelWindowToHtml view time window
         , update = animateUpdate
         , subscriptions = animateSubs
@@ -204,14 +197,15 @@ animateSubs { time } =
 
 
 {-| -}
-simulate :
-    model
-    -> (model -> Collage.Form)
-    -> (Time -> model -> model)
-    -> Simulation model
-simulate start view update =
+simulationProgram :
+    { init : model
+    , view : model -> Collage.Form
+    , update : Time -> model -> model
+    }
+    -> SimulationProgram model
+simulationProgram { init, view, update } =
     Html.program
-        { init = init start
+        { init = wrapStudentInit init
         , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
         , update = simulateUpdate update
         , subscriptions = simulateSubs
@@ -251,14 +245,15 @@ simulateSubs { time } =
 
 
 {-| -}
-interact :
-    model
-    -> (model -> Collage.Form)
-    -> (Msg -> model -> model)
-    -> Interaction model
-interact start view update =
+interactiveProgram :
+    { init : model
+    , view : model -> Collage.Form
+    , update : Msg -> model -> model
+    }
+    -> InteractiveProgram model
+interactiveProgram { init, view, update } =
     Html.program
-        { init = init start
+        { init = wrapStudentInit init
         , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
         , update = interactUpdate update
         , subscriptions = interactSubs
@@ -322,8 +317,8 @@ viewModelWindowToHtml view model window =
             |> Element.toHtml
 
 
-init : model -> ( Model model, Cmd Msg )
-init model =
+wrapStudentInit : model -> ( Model model, Cmd Msg )
+wrapStudentInit model =
     let
         windowCmd =
             Task.perform (sizeToWindow >> WindowResize) Window.size
