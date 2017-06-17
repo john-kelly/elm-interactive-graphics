@@ -14,7 +14,7 @@ module Collage.Program
         , Window
         )
 
-{-| Incremental introduction to interactive graphics programs.
+{-| Gradual introduction to interactive graphics programs.
 
 # Draw
 @docs DrawingProgram, drawingProgram
