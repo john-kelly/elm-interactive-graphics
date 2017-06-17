@@ -2,9 +2,10 @@ module Animation exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Interaction exposing (animate, Animation)
+import Collage.Program exposing (animationProgram, AnimationProgram)
 
 
+view : Float -> Form
 view time =
     let
         seconds =
@@ -19,6 +20,6 @@ view time =
         move ( 0, y ) (filled red (circle radius))
 
 
-main : Animation
+main : AnimationProgram
 main =
-    animate view
+    animationProgram view

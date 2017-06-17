@@ -2,17 +2,24 @@ module Interaction exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Interaction exposing (interact, Interaction, Msg(..))
+import Collage.Program exposing (interactiveProgram, InteractiveProgram, Msg(..))
 
 
-model =
+type alias Model =
+    ( Float, Float, Float, Float, Float )
+
+
+init : Model
+init =
     ( 0, 0, 2, 1, 30 )
 
 
+view : Model -> Form
 view ( x, y, dx, dy, radius ) =
     move ( x, y ) (filled red (circle radius))
 
 
+update : Msg -> Model -> Model
 update msg (( x, y, dx, dy, radius ) as model) =
     case msg of
         TimeTick _ ->
@@ -30,6 +37,10 @@ update msg (( x, y, dx, dy, radius ) as model) =
             model
 
 
-main : Interaction ( Float, Float, Float, Float, Float )
+main : InteractiveProgram Model
 main =
-    interact model view update
+    interactiveProgram
+        { init = init
+        , view = view
+        , update = update
+        }

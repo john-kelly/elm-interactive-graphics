@@ -2,13 +2,14 @@ module Drawing exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Interaction exposing (draw, Drawing)
+import Collage.Program exposing (drawingProgram, DrawingProgram)
 
 
+view : Form
 view =
     filled red (circle 50)
 
 
-main : Drawing
+main : DrawingProgram
 main =
-    draw view
+    drawingProgram view
