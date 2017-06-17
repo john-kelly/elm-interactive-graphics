@@ -1,13 +1,13 @@
 {
     "version": "1.0.0",
-    "summary": "Incremental introduction to interactive graphics programs.",
+    "summary": "Gradual introduction to interactive graphics programs.",
     "repository": "https://github.com/john-kelly/elm-interactive-graphics.git",
     "license": "BSD3",
     "source-directories": [
         "src"
     ],
     "exposed-modules": [
-        "Collage.Interaction"
+        "Collage.Program"
     ],
     "dependencies": {
         "elm-lang/animation-frame": "1.0.1 <= v < 2.0.0",
