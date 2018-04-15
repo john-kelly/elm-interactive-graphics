@@ -1,13 +1,13 @@
 module Collage.Program
     exposing
-        ( DrawingProgram
-        , drawingProgram
-        , AnimationProgram
-        , animationProgram
-        , SimulationProgram
-        , simulationProgram
-        , InteractiveProgram
-        , interactiveProgram
+        ( Drawing
+        , draw
+        , Animation
+        , animate
+        , Simulation
+        , simulate
+        , Interaction
+        , interact
         , Msg(..)
         , Mouse
         , Key(..)
@@ -16,17 +16,26 @@ module Collage.Program
 
 {-| Gradual introduction to interactive graphics programs.
 
+
 # Draw
-@docs DrawingProgram, drawingProgram
+
+@docs Drawing, draw
+
 
 # Draw with Time
-@docs AnimationProgram, animationProgram
+
+@docs Animation, animate
+
 
 # Draw with Time and Model
-@docs SimulationProgram, simulationProgram
+
+@docs Simulation, simulate
+
 
 # Draw with Model and Messages
-@docs InteractiveProgram, interactiveProgram, Msg, Mouse, Key, Window
+
+@docs Interaction, interact, Msg, Mouse, Key, Window
+
 -}
 
 import AnimationFrame
@@ -124,28 +133,28 @@ type alias Model model =
 
 
 {-| -}
-type alias DrawingProgram =
+type alias Drawing =
     Program Never (Model ()) Msg
 
 
 {-| -}
-type alias AnimationProgram =
+type alias Animation =
     Program Never (Model ()) Msg
 
 
 {-| -}
-type alias SimulationProgram model =
+type alias Simulation model =
     Program Never (Model model) Msg
 
 
 {-| -}
-type alias InteractiveProgram model =
+type alias Interaction model =
     Program Never (Model model) Msg
 
 
 {-| -}
-drawingProgram : Collage.Form -> DrawingProgram
-drawingProgram view =
+draw : Collage.Form -> Drawing
+draw view =
     Html.program
         { init = wrapStudentInit ()
         , view = \{ window } -> viewModelWindowToHtml (\_ -> view) () window
@@ -165,8 +174,8 @@ drawUpdate msg model =
 
 
 {-| -}
-animationProgram : (Time -> Collage.Form) -> AnimationProgram
-animationProgram view =
+animate : (Time -> Collage.Form) -> Animation
+animate view =
     Html.program
         { init = wrapStudentInit ()
         , view = \{ time, window } -> viewModelWindowToHtml view time window
@@ -197,13 +206,13 @@ animateSubs { time } =
 
 
 {-| -}
-simulationProgram :
+simulate :
     { init : model
     , view : model -> Collage.Form
     , update : Time -> model -> model
     }
-    -> SimulationProgram model
-simulationProgram { init, view, update } =
+    -> Simulation model
+simulate { init, view, update } =
     Html.program
         { init = wrapStudentInit init
         , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
@@ -245,13 +254,13 @@ simulateSubs { time } =
 
 
 {-| -}
-interactiveProgram :
+interact :
     { init : model
     , view : model -> Collage.Form
     , update : Msg -> model -> model
     }
-    -> InteractiveProgram model
-interactiveProgram { init, view, update } =
+    -> Interaction model
+interact { init, view, update } =
     Html.program
         { init = wrapStudentInit init
         , view = \{ model, window } -> lazy3 viewModelWindowToHtml view model window
@@ -301,11 +310,12 @@ interactSubs { time, window } =
 {-| Necessary for lazy! We need to define at the top level so that the
 reference of the lazy fn is the same across calls.
 
-From http://elm-lang.org/blog/blazing-fast-html:
+From <http://elm-lang.org/blog/blazing-fast-html>:
 So we just check to see if fn (viewModelWindowToHtml) and args (view, model, and window) are
 the same as last frame by comparing the old and new values by reference. This is
 super cheap, and if they are the same, the lazy function can often avoid a ton
 of work. This is a pretty simple trick that can speed things up significantly.
+
 -}
 viewModelWindowToHtml : (model -> Collage.Form) -> model -> Window -> Html.Html msg
 viewModelWindowToHtml view model window =

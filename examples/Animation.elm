@@ -2,7 +2,7 @@ module Animation exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Program exposing (animationProgram, AnimationProgram)
+import Collage.Program exposing (animate, Animation)
 
 
 view : Float -> Form
@@ -20,6 +20,6 @@ view time =
         move ( 0, y ) (filled red (circle radius))
 
 
-main : AnimationProgram
+main : Animation
 main =
-    animationProgram view
+    animate view

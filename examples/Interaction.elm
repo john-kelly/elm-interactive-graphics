@@ -2,7 +2,7 @@ module Interaction exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Program exposing (interactiveProgram, InteractiveProgram, Msg(..))
+import Collage.Program exposing (interact, Interaction, Msg(..))
 
 
 type alias Model =
@@ -37,9 +37,9 @@ update msg (( x, y, dx, dy, radius ) as model) =
             model
 
 
-main : InteractiveProgram Model
+main : Interaction Model
 main =
-    interactiveProgram
+    interact
         { init = init
         , view = view
         , update = update

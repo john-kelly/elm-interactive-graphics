@@ -11,8 +11,8 @@ Gradual introduction to interactive graphics programs.
 ## Sample Simulation Program
 ```elm
 import Color exposing (..)
-import Collage exposing (Form)
-import Collage.Interaction exposing (simulationProgram, SimulationProgram)
+import Collage exposing (..)
+import Collage.Program exposing (simulate, Simulation)
 
 
 type alias Model =
@@ -41,7 +41,7 @@ update time ( x, y, dx, dy, radius ) =
 
 main : Simulation Model
 main =
-    simulationProgram
+    simulate
         { init = init
         , view = view
         , update = update

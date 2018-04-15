@@ -2,7 +2,7 @@ module Simulation exposing (..)
 
 import Color exposing (..)
 import Collage exposing (..)
-import Collage.Program exposing (simulationProgram, SimulationProgram)
+import Collage.Program exposing (simulate, Simulation)
 
 
 type alias Model =
@@ -29,9 +29,9 @@ update time ( x, y, dx, dy, radius ) =
         ( x + dx, y + dy, dx, dy, radius )
 
 
-main : SimulationProgram Model
+main : Simulation Model
 main =
-    simulationProgram
+    simulate
         { init = init
         , view = view
         , update = update
