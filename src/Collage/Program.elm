@@ -1,18 +1,9 @@
-module Collage.Program
-    exposing
-        ( Drawing
-        , draw
-        , Animation
-        , animate
-        , Simulation
-        , simulate
-        , Interaction
-        , interact
-        , Msg(..)
-        , Mouse
-        , Key(..)
-        , Window
-        )
+module Collage.Program exposing
+    ( Drawing, draw
+    , Animation, animate
+    , Simulation, simulate
+    , Interaction, interact, Msg(..), Mouse, Key(..), Window
+    )
 
 {-| Gradual introduction to interactive graphics programs.
 
@@ -39,8 +30,8 @@ module Collage.Program
 -}
 
 import AnimationFrame
-import Element
 import Collage
+import Element
 import Html
 import Html.Lazy exposing (lazy3)
 import Keyboard exposing (KeyCode)
@@ -167,10 +158,14 @@ drawUpdate : Msg -> Model () -> ( Model (), Cmd Msg )
 drawUpdate msg model =
     case msg of
         WindowResize newWindow ->
-            { model | window = newWindow } ! []
+            ( { model | window = newWindow }
+            , Cmd.none
+            )
 
         _ ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
 
 {-| -}
@@ -188,13 +183,19 @@ animateUpdate : Msg -> Model () -> ( Model (), Cmd Msg )
 animateUpdate msg model =
     case msg of
         TimeTick newTime ->
-            { model | time = newTime } ! []
+            ( { model | time = newTime }
+            , Cmd.none
+            )
 
         WindowResize newWindow ->
-            { model | window = newWindow } ! []
+            ( { model | window = newWindow }
+            , Cmd.none
+            )
 
         _ ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
 
 animateSubs : Model () -> Sub Msg
@@ -233,16 +234,23 @@ simulateUpdate update msg ({ model } as simulateModel) =
                     -- necessary for lazy
                     if updatedModel == model then
                         model
+
                     else
                         updatedModel
             in
-                { simulateModel | time = newTime, model = newModel } ! []
+            ( { simulateModel | time = newTime, model = newModel }
+            , Cmd.none
+            )
 
         WindowResize newWindow ->
-            { simulateModel | window = newWindow } ! []
+            ( { simulateModel | window = newWindow }
+            , Cmd.none
+            )
 
         _ ->
-            simulateModel ! []
+            ( simulateModel
+            , Cmd.none
+            )
 
 
 simulateSubs : Model model -> Sub Msg
@@ -279,28 +287,35 @@ interactUpdate update msg ({ model } as interactModel) =
             -- necessary for lazy
             if updatedModel == model then
                 model
+
             else
                 updatedModel
     in
-        case msg of
-            TimeTick newTime ->
-                { interactModel | time = newTime, model = newModel } ! []
+    case msg of
+        TimeTick newTime ->
+            ( { interactModel | time = newTime, model = newModel }
+            , Cmd.none
+            )
 
-            WindowResize newWindow ->
-                { interactModel | window = newWindow, model = newModel } ! []
+        WindowResize newWindow ->
+            ( { interactModel | window = newWindow, model = newModel }
+            , Cmd.none
+            )
 
-            _ ->
-                { interactModel | model = newModel } ! []
+        _ ->
+            ( { interactModel | model = newModel }
+            , Cmd.none
+            )
 
 
 interactSubs : Model model -> Sub Msg
 interactSubs { time, window } =
     Sub.batch
         [ accumTimeSub time
-        , Mouse.clicks ((mouseToCartCoord window) >> MouseClick)
-        , Mouse.downs ((mouseToCartCoord window) >> MouseDown)
-        , Mouse.ups ((mouseToCartCoord window) >> MouseUp)
-        , Mouse.moves ((mouseToCartCoord window) >> MouseMove)
+        , Mouse.clicks (mouseToCartCoord window >> MouseClick)
+        , Mouse.downs (mouseToCartCoord window >> MouseDown)
+        , Mouse.ups (mouseToCartCoord window >> MouseUp)
+        , Mouse.moves (mouseToCartCoord window >> MouseMove)
         , Keyboard.downs (toKey >> KeyDown)
         , Keyboard.ups (toKey >> KeyUp)
         , windowResizeSub
@@ -323,8 +338,8 @@ viewModelWindowToHtml view model window =
         { width, height } =
             windowToSize window
     in
-        Collage.collage width height [ view model ]
-            |> Element.toHtml
+    Collage.collage width height [ view model ]
+        |> Element.toHtml
 
 
 wrapStudentInit : model -> ( Model model, Cmd Msg )
@@ -333,7 +348,9 @@ wrapStudentInit model =
         windowCmd =
             Task.perform (sizeToWindow >> WindowResize) Window.size
     in
-        Model (Window 0 0 0 0) 0 model ! [ windowCmd ]
+    ( Model (Window 0 0 0 0) 0 model
+    , windowCmd
+    )
 
 
 windowResizeSub : Sub Msg
@@ -360,11 +377,11 @@ sizeToWindow { width, height } =
         h =
             toFloat height / 2
     in
-        { top = h
-        , bottom = -h
-        , left = -w
-        , right = w
-        }
+    { top = h
+    , bottom = -h
+    , left = -w
+    , right = w
+    }
 
 
 windowToSize : Window -> Size
@@ -376,7 +393,7 @@ windowToSize { top, bottom, left, right } =
         height =
             round (top - bottom)
     in
-        { width = width, height = height }
+    { width = width, height = height }
 
 
 toKey : KeyCode -> Key
